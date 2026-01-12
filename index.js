@@ -1,5 +1,8 @@
 // ===================== CONFIG =====================
-require("dotenv").config();
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const fs = require("fs");
@@ -7,15 +10,35 @@ const csvParse = require("papaparse");
 
 // Load environment variables
 const SHOP_DOMAIN = process.env.SHOP_DOMAIN || "london-store-napoli.myshopify.com";
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN; // must come from Hostinger env vars
 const API_VERSION = process.env.API_VERSION || "2025-10";
 
-// Validate required environment variables
+const app = express();
+app.use(bodyParser.json({ limit: "2mb" }));
+
+// ✅ health check (always)
+app.get("/health", (req, res) => res.status(200).send("OK"));
+
+// 🔍 DEBUG ENV (TEMPORARY)
+app.get("/debug-env", (req, res) => {
+  res.json({
+    nodeEnv: process.env.NODE_ENV,
+    hasAdminToken: !!process.env.ADMIN_TOKEN,
+    shopDomain: process.env.SHOP_DOMAIN,
+    apiVersion: process.env.API_VERSION,
+    port: process.env.PORT,
+    keys: Object.keys(process.env).filter(
+      k => k.includes("TOKEN") || k.includes("SHOP") || k.includes("API") || k === "PORT"
+    )
+  });
+});
+
+// ✅ DO NOT EXIT during debugging — just warn
 if (!ADMIN_TOKEN) {
-  console.error("❌ ERROR: ADMIN_TOKEN environment variable is required!");
-  console.error("💡 Create a .env file with: ADMIN_TOKEN=your_token_here");
-  process.exit(1);
+  console.error("❌ ADMIN_TOKEN missing from process.env (Hostinger env vars not applied yet)");
 }
+
+
 
 const CSV_FILE = "./size_chart.csv"; 
 
@@ -208,7 +231,7 @@ async function updateVariantMetafields(variantGid, mapping) {
 }
 
 // ===================== EXPRESS WEBHOOK =====================
-const app = express();
+// const app = express();
 app.use(bodyParser.json({ limit: "2mb" }));
 
 app.post("/product-created", async (req, res) => {
