@@ -30,8 +30,8 @@ npm install
 
 3. Create a `.env` file in the root directory:
 ```env
-SHOP_DOMAIN=your-store.myshopify.com
-ADMIN_TOKEN=your_admin_api_token
+SHOPIFY_DOMAIN=your-store.myshopify.com
+SHOPIFY_TOKEN=your_admin_api_token
 API_VERSION=2025-10
 ```
 
@@ -75,8 +75,8 @@ The following metafields are created/updated on each variant:
 
 ## Environment Variables
 
-- `SHOP_DOMAIN` - Your Shopify store domain (default: london-store-napoli.myshopify.com)
-- `ADMIN_TOKEN` - Shopify Admin API access token (required)
+- `SHOPIFY_DOMAIN` - Your Shopify store domain (default: london-store-napoli.myshopify.com)
+- `SHOPIFY_TOKEN` - Shopify Admin API access token (required)
 - `API_VERSION` - Shopify API version (default: 2025-10)
 
 ## License

@@ -6,8 +6,8 @@ const fs = require("fs");
 const csvParse = require("papaparse");
 
 // Load environment variables
-const SHOP_DOMAIN = process.env.SHOP_DOMAIN || "london-store-napoli.myshopify.com";
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN; // must come from Hostinger env vars
+const SHOPIFY_DOMAIN = process.env.SHOPIFY_DOMAIN || "london-store-napoli.myshopify.com";
+const SHOPIFY_TOKEN = process.env.SHOPIFY_TOKEN; // must come from Hostinger env vars
 const API_VERSION = process.env.API_VERSION || "2025-10";
 
 const app = express();
@@ -19,20 +19,15 @@ app.get("/health", (req, res) => res.status(200).send("OK"));
 // 🔍 DEBUG ENV (TEMPORARY)
 app.get("/debug-env", (req, res) => {
   res.json({
-    nodeEnv: process.env.NODE_ENV,
-    hasAdminToken: !!process.env.ADMIN_TOKEN,
-    shopDomain: process.env.SHOP_DOMAIN,
-    apiVersion: process.env.API_VERSION,
-    port: process.env.PORT,
-    keys: Object.keys(process.env).filter(
-      k => k.includes("TOKEN") || k.includes("SHOP") || k.includes("API") || k === "PORT"
-    )
+    testHello: process.env.TEST_HELLO,
+    hasToken: !!process.env.SHOPIFY_TOKEN,
+    keys: Object.keys(process.env).filter(k => k.includes("SHOPIFY") || k.includes("TEST"))
   });
 });
 
 // ✅ DO NOT EXIT during debugging — just warn
-if (!ADMIN_TOKEN) {
-  console.error("❌ ADMIN_TOKEN missing from process.env (Hostinger env vars not applied yet)");
+if (!SHOPIFY_TOKEN) {
+  console.error("❌ SHOPIFY_TOKEN missing from process.env (Hostinger env vars not applied yet)");
 }
 
 
@@ -115,14 +110,14 @@ function findSizeRow(brand, gender, sizeNumeric) {
 
 // ===================== GET METAFIELDS =====================
 async function getVariantMetafields(variantId) {
-  const url = `https://${SHOP_DOMAIN}/admin/api/${API_VERSION}/variants/${variantId}/metafields.json`;
+  const url = `https://${SHOPIFY_DOMAIN}/admin/api/${API_VERSION}/variants/${variantId}/metafields.json`;
 
   console.log("📥 GET variant metafields:", url);
 
   const resp = await fetch(url, {
     method: "GET",
     headers: {
-      "X-Shopify-Access-Token": ADMIN_TOKEN,
+      "X-Shopify-Access-Token": SHOPIFY_TOKEN,
       Accept: "application/json"
     }
   });
@@ -172,7 +167,7 @@ async function updateVariantMetafields(variantGid, mapping) {
     if (!current) {
       console.log(`➕ Creating metafield ${d.key} for variant ${variantId}`);
 
-      const createUrl = `https://${SHOP_DOMAIN}/admin/api/${API_VERSION}/variants/${variantId}/metafields.json`;
+      const createUrl = `https://${SHOPIFY_DOMAIN}/admin/api/${API_VERSION}/variants/${variantId}/metafields.json`;
 
       const body = {
         metafield: {
@@ -186,7 +181,7 @@ async function updateVariantMetafields(variantGid, mapping) {
       const resp = await fetch(createUrl, {
         method: "POST",
         headers: {
-          "X-Shopify-Access-Token": ADMIN_TOKEN,
+          "X-Shopify-Access-Token": SHOPIFY_TOKEN,
           "Content-Type": "application/json",
           Accept: "application/json"
         },
@@ -204,7 +199,7 @@ async function updateVariantMetafields(variantGid, mapping) {
 
     console.log(`✏️ Updating metafield ${d.key} for variant ${variantId}`);
 
-    const updateUrl = `https://${SHOP_DOMAIN}/admin/api/${API_VERSION}/metafields/${current.id}.json`;
+    const updateUrl = `https://${SHOPIFY_DOMAIN}/admin/api/${API_VERSION}/metafields/${current.id}.json`;
 
     const body = {
       metafield: {
@@ -216,7 +211,7 @@ async function updateVariantMetafields(variantGid, mapping) {
     const resp = await fetch(updateUrl, {
       method: "PUT",
       headers: {
-        "X-Shopify-Access-Token": ADMIN_TOKEN,
+        "X-Shopify-Access-Token": SHOPIFY_TOKEN,
         "Content-Type": "application/json",
         Accept: "application/json"
       },
